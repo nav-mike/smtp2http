@@ -1,11 +1,9 @@
-FROM golang:1.14.4 as builder
-RUN git clone https://github.com/alash3al/smtp2http /go/src/build
-WORKDIR /go/src/build
-RUN go mod vendor
-ENV CGO_ENABLED=0
-RUN GOOS=linux go build -mod vendor -a -o smtp2http .
+FROM golang:1.14.4-alpine
 
-FROM golang:1.16.2  
-WORKDIR /root/
-COPY --from=builder /go/src/build/smtp2http /usr/bin/smtp2http
-ENTRYPOINT ["smtp2http"]
+WORKDIR /go/src/build
+COPY . .
+ENV CGO_ENABLED=0
+RUN GOOS=linux GOARCH=arm64 go build -mod vendor -a -o smtp2http .
+RUN chmod +x smtp2http
+
+CMD ["/go/src/build/smtp2http", "--timeout.read=50", "--timeout.write=50", "--webhook=https://webhook.site/140c4bd7-640a-438d-9c0f-751f7d4da372"]
